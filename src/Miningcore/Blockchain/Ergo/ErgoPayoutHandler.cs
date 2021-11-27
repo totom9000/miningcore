@@ -241,10 +241,10 @@ namespace Miningcore.Blockchain.Ergo
                         {
                             result.Add(block);
 
-                            if(block.Status == BlockStatus.Confirmed)
+                            if(block.Status == BlockStatus.Confirmed && block.ConfirmationProgress == 1)
                             {
                                 logger.Info(() => $"[{LogCategory}] Unlocked block {block.BlockHeight} worth {FormatAmount(block.Reward)}");
-
+                                logger.Info(() => $"[{LogCategory}] Block has status {block.Status} and confirmationProgress: {block.ConfirmationProgress * 100}%");
                                 messageBus.NotifyBlockUnlocked(poolConfig.Id, block, coin);
                             }
 
@@ -298,68 +298,17 @@ namespace Miningcore.Blockchain.Ergo
         public virtual async Task PayoutAsync(IMiningPool pool, Balance[] balances, CancellationToken ct)
         {
             Contract.RequiresNonNull(balances, nameof(balances));
-            BlockStatus[] blockStatuses = {BlockStatus.Confirmed};
-            uint totalBlocks = await cf.Run(con => blockRepo.GetPoolBlockCountAsync(con, poolConfig.Id));
-            var pendingBlocks = await cf.Run(con => blockRepo.PageBlocksAsync(con, poolConfig.Id, blockStatuses, 0, (int)totalBlocks));
             
-            logger.Info(() => $"Initiating Payments Of Confirmed Blocks");
-            // Order balances by time to get balances in order that they were created
-            var balancesByTime = balances.OrderBy(x => x.Created);
-            var lastBalanceToPay = balancesByTime.Last();
-            var totalBalancesSum = balancesByTime.Select(x => x.Amount).Sum();
-            logger.Info(() => $"BalanceByTime_0: {balancesByTime.ToArray()[0].Amount} {balancesByTime.ToArray()[0].Created} BalanceByTime_1: {balancesByTime.ToArray()[1].Amount} {balancesByTime.ToArray()[1].Created} BalanceByTime_2: {balancesByTime.ToArray()[2].Amount} {balancesByTime.ToArray()[2].Created}" );
-            Balance[] balancesToPay = {};
-            Balance[] balanceList = {};
-            logger.Info(() => $"Total Balances Sum: {totalBalancesSum} Sum Divided By 67.5 {totalBalancesSum / ((decimal)67.5)} Last N Block Rewards In Pending Blocks  {pendingBlocks.TakeLast((int)(totalBalancesSum/((decimal)67.5))).Select(x => x.Reward).Sum()}");
-            foreach(Block block in pendingBlocks){
-                // Only look at confirmed blocks for reference amount
-                logger.Info(() => $"Analyzing block {block.BlockHeight}");
-                if(block.Status == BlockStatus.Confirmed && block.BlockHeight == 625448){
-                    
-                    logger.Info(() => $"Block {block.BlockHeight} has status {block.Status}, continuing balance payments...");
-                    // filter balances to ensure that only balances not in balancesToPay are analyzed and unique addresses are ensured
-                    var balancesToAnalyze = balancesByTime.Where(x => !balancesToPay.Contains(x) && balancesToPay.Where(y => y.Address == x.Address).Count() == 0);
-                    
-                    //Take first n balances of balancesToAnalyze such that these balances add up to the block reward
-                    var balancesToSum = balancesByTime.TakeWhile(x => 
-                            balancesByTime.Take(Array.IndexOf(balancesByTime.ToArray(), x)).Select(x => x.Amount).Sum() <= 51
-                        );
-                    foreach (Balance bal in balancesToAnalyze){
-                        var balToFind = balanceList.Where(b => b.Address == bal.Address);
-                        if(balToFind.Count() < 1){
-                             balanceList = balanceList.AsEnumerable().Append(bal).ToArray();
-                        }else{
-                            continue;
-                        }
-                    }
-                    // // Add these elements to balancesToPay. These elements will not be evaluated next iteration
-
-                    // if(balancesToPay.Length == balances.Length || balancesToSum.Select(x => x.Amount).Sum() < 0){
-                    //     logger.Info(() => $"Not enough balances remaining to pay off block, now exiting block analysis..."+ 
-                    //     $" Remaining Balances: {balancesToAnalyze.Select(x => x.Amount).Sum()}, Block Reward: {block.Reward}, Num Balances: {balancesToAnalyze.Count()}");
-                    //     break;
-                    // }
-                    balancesToPay = balancesToPay.AsEnumerable().Concat(balanceList.AsEnumerable()).ToArray();
-                    logger.Info(() => $"Payments for block {block.BlockHeight} with total value {block.Reward} have been recorded.");
-                    // build args, use balancesToPay so that only balances for blocks that have been confirmed are paid.
-                    break;
-                }   
-            }
-         
-                    
-        var amounts = balancesByTime.OrderBy(x => x.Created).TakeWhile(x => 
-                            balancesByTime.Take(Array.IndexOf(balancesByTime.ToArray(), x)).Select(x => x.Amount).Sum() <= (decimal)51.60207)
-                        .Where(x => x.Amount > 0)
-                        .ToDictionary(x => x.Address, x => Math.Round(x.Amount, 4));
-         logger.Info(() => $"Payments converted to dictionary.");
-                    if(amounts.Count == 0)
-                        return;
-
-                    var balancesTotal = amounts.Sum(x => x.Value);
-
+            
+            var amounts = balances
+                .Where(x => x.Amount > 0)
+                .ToDictionary(x => x.Address, x => Math.Round(x.Amount, 4));
+            if(amounts.Count == 0)
+                return;
+            var balancesTotal = amounts.Sum(x => x.Value);
                     try
                     {
-                        logger.Info(() => $"[{LogCategory}] Paying {FormatAmount(balanceList.Sum(x => x.Amount))} to {balances.Length} addresses");
+                        logger.Info(() => $"[{LogCategory}] Paying {FormatAmount(balancesTotal)} to {balances.Length} addresses");
 
                         // get wallet status
                         var status = await ergoClient.GetWalletStatusAsync(ct);
@@ -423,20 +372,18 @@ namespace Miningcore.Blockchain.Ergo
 
                         if(string.IsNullOrEmpty(txId))
                             throw new PaymentException("Payment transaction failed to return a transaction id");
-
                         // payment successful
                         logger.Info(() => $"[{LogCategory}] Payment transaction id: {txId}");
 
-                        await PersistPaymentsAsync(balanceList, txId);
+                        await PersistPaymentsAsync(balances, txId);
 
-                        NotifyPayoutSuccess(poolConfig.Id, balancesToPay, new[] {txId}, null);
+                        NotifyPayoutSuccess(poolConfig.Id, balances, new[] {txId}, null);
                     }
-
                     catch(PaymentException ex)
                     {
                         logger.Error(() => $"[{LogCategory}] {ex.Message}");
 
-                        NotifyPayoutFailure(poolConfig.Id, balanceList, ex.Message, null);
+                        NotifyPayoutFailure(poolConfig.Id, balances, ex.Message, null);
                     }
 
                     finally

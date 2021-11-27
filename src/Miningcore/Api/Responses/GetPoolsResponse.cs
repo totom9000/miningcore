@@ -55,6 +55,9 @@ namespace Miningcore.Api.Responses
         public decimal TotalPaid { get; set; }
         public uint TotalBlocks { get; set; }
         public DateTime? LastPoolBlockTime { get; set; }
+        public double RoundShares { get; set;}
+        public double PoolEffort { get; set; }
+        public double RoundHashes { get; set; }
     }
 
     public class GetPoolsResponse

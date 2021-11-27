@@ -71,8 +71,40 @@ namespace Miningcore.Api.Controllers
                     // enrich
                     result.TotalPaid = await cf.Run(con => statsRepo.GetTotalPoolPaymentsAsync(con, config.Id));
                     result.TotalBlocks = await cf.Run(con => blocksRepo.GetPoolBlockCountAsync(con, config.Id));
-                    result.LastPoolBlockTime = await cf.Run(con => blocksRepo.GetLastPoolBlockTimeAsync(con, config.Id));
+                    var lastBlockTime = await cf.Run(con => blocksRepo.GetLastPoolBlockTimeAsync(con, config.Id));
+                    result.LastPoolBlockTime = lastBlockTime;
 
+                    if(lastBlockTime.HasValue) {
+                        DateTime startTime = lastBlockTime.Value;
+                        logger.Info(() => "[API] Creating Pool Effort and Round Shares For API Response");
+                        var totalRoundShares = await cf.Run(con => shareRepo.CountAllSharesBetweenCreatedAsync(con, config.Id, startTime, clock.Now));
+                        var totalRoundHashes = await cf.Run(con => shareRepo.GetTotalShareDiffBetweenCreatedAsync(con, config.Id, pool.ShareMultiplier, startTime, clock.Now));
+                        var poolEffort = await cf.Run(con => shareRepo.GetEffortBetweenCreatedAsync(con, config.Id, pool.ShareMultiplier, startTime, clock.Now));
+                        result.RoundShares = totalRoundShares;
+                        result.RoundHashes = totalRoundHashes.Value;
+                        result.PoolEffort = poolEffort.Value;
+                    }
+                    else
+                    {
+                        logger.Warn(() => "[API] API failed to generate pool effort and round shares stats! These stats shall be displayed as 0.");
+                        result.RoundShares = 0;
+                        result.RoundHashes = 0;
+                        result.PoolEffort = 0;
+                    }
+                    result.PaymentProcessing.Extra = null;
+                    foreach(PoolEndpoint poolEP in result.Ports.Values)
+                    {
+                        if(poolEP.Tls == true || poolEP.Tls == false)
+                        {
+                            poolEP.Tls = false;
+                        }
+                        if(!String.IsNullOrEmpty(poolEP.TlsPfxFile))
+                        {
+                            poolEP.TlsPfxFile = null;
+                        }
+                    }
+                    
+                    //result.RoundShares = 
                     var from = clock.Now.AddDays(-1);
 
                     var minersByHashrate = await cf.Run(con => statsRepo.PagePoolMinersByHashrateAsync(con, config.Id, from, 0, 15));
@@ -124,8 +156,40 @@ namespace Miningcore.Api.Controllers
             // enrich
             response.Pool.TotalPaid = await cf.Run(con => statsRepo.GetTotalPoolPaymentsAsync(con, pool.Id));
             response.Pool.TotalBlocks = await cf.Run(con => blocksRepo.GetPoolBlockCountAsync(con, pool.Id));
-            response.Pool.LastPoolBlockTime = await cf.Run(con => blocksRepo.GetLastPoolBlockTimeAsync(con, pool.Id));
+            var lastBlockTime = await cf.Run(con => blocksRepo.GetLastPoolBlockTimeAsync(con, pool.Id));
+            response.Pool.LastPoolBlockTime = lastBlockTime;
 
+            if(lastBlockTime.HasValue)
+            {
+                DateTime startTime = lastBlockTime.Value;
+                logger.Info(() => "[API] Creating Pool Effort and Round Shares For API Response");
+                var totalRoundShares = await cf.Run(con => shareRepo.CountAllSharesBetweenCreatedAsync(con, pool.Id, startTime, clock.Now));
+                var totalRoundHashes = await cf.Run(con => shareRepo.GetTotalShareDiffBetweenCreatedAsync(con, pool.Id, poolInstance.ShareMultiplier, startTime, clock.Now));
+                var poolEffort = await cf.Run(con => shareRepo.GetEffortBetweenCreatedAsync(con, pool.Id, poolInstance.ShareMultiplier, startTime, clock.Now));
+                response.Pool.RoundShares = totalRoundShares;
+                response.Pool.RoundHashes = totalRoundHashes.Value;
+                response.Pool.PoolEffort = poolEffort.Value;
+
+            }
+            else
+            {
+                logger.Warn(() => "[API] API failed to generate pool effort and round shares stats! These stats shall be displayed as 0.");
+                response.Pool.RoundShares = 0;
+                response.Pool.RoundHashes = 0;
+                response.Pool.PoolEffort = 0;
+            }
+            response.Pool.PaymentProcessing.Extra = null;
+            foreach(PoolEndpoint poolEP in response.Pool.Ports.Values)
+            {
+                if(poolEP.Tls == true || poolEP.Tls == false)
+                {
+                    poolEP.Tls = false;
+                }
+                if(!String.IsNullOrEmpty(poolEP.TlsPfxFile))
+                {
+                    poolEP.TlsPfxFile = null;
+                }
+            }
             var from = clock.Now.AddDays(-1);
 
             response.Pool.TopMiners = (await cf.Run(con => statsRepo.PagePoolMinersByHashrateAsync(
@@ -348,7 +412,10 @@ namespace Miningcore.Api.Controllers
             if(statsResult != null)
             {
                 stats = mapper.Map<Responses.MinerStats>(statsResult);
-
+                int shareConst = 1;
+                if(pool.Template.Name.Equals("Ergo"))
+                    shareConst = 256;
+                stats.PendingShares = stats.PendingShares * shareConst;
                 // optional fields
                 if(statsResult.LastPayment != null)
                 {
