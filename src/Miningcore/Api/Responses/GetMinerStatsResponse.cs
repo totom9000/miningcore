@@ -32,5 +32,6 @@ namespace Miningcore.Api.Responses
         public string LastPaymentLink { get; set; }
         public WorkerPerformanceStatsContainer Performance { get; set; }
         public WorkerPerformanceStatsContainer[] PerformanceSamples { get; set; }
+        public decimal EstimatedBalance { get; set; }
     }
 }
