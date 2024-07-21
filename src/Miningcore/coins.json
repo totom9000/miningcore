@@ -683,6 +683,30 @@
         "explorerTxLink": "https://chainz.cryptoid.info/dash/tx.dws?{0}.htm",
         "explorerAccountLink": "https://chainz.cryptoid.info/dash/address.dws?{0}.htm"
     },
+    "blocx-old": {
+        "name": "Blocx",
+        "canonicalName": "Blocx",
+        "symbol": "BLOCX",
+        "family": "bitcoin",
+        "website": "https://blocx.tech",
+        "market": "https://coinpaprika.com/coin/blocx-blocx",
+        "twitter": "@BLOCX_TECH",
+        "telegram": "blocx_verification",
+        "discord": "https://discord.gg/cA9vFVcYKE",
+        "coinbaseHasher": {
+            "hash": "sha256d"
+        },
+        "headerHasher": {
+            "hash": "x11"
+        },
+        "blockHasher": {
+            "hash": "reverse",
+            "args": [
+                {
+                    "hash": "x11"
+                }
+            ]
+        },
     "digibyte-sha256": {
         "name": "Digibyte Sha256",
         "canonicalName": "Digibyte",
@@ -4331,12 +4355,26 @@
         "symbol": "ERG",
         "family": "ergo",
         "website": "",
-        "market": "",
+        "market": "https://coinpaprika.com/coin/efyt-ergo",
         "twitter": "",
         "telegram": "",
-        "discord": "",
+        "discord": "https://discord.gg/cA9vFVcYKE",
         "explorerBlockLink": "https://explorer.ergoplatform.com/en/blocks/$hash$",
         "explorerTxLink": "https://explorer.ergoplatform.com/en/transactions/{0}",
         "explorerAccountLink": "https://explorer.ergoplatform.com/en/addresses/{0}"
+    },   
+    "blocx": {
+        "name": "Blocx",
+        "canonicalName": "Blocx",
+        "symbol": "BLOCX",
+        "family": "ergo",
+        "website": "https://blocx.tech",
+        "market": "https://coinpaprika.com/coin/blocx-blocx",
+        "twitter": "@BLOCX_TECH",
+        "telegram": "blocx_verification",
+        "discord": "https://discord.gg/cA9vFVcYKE",
+        "explorerBlockLink": "https://blocxscan.com/blocks/$hash$",
+        "explorerTxLink": "https://blocxscan.com/transaction/{0}",
+        "explorerAccountLink": "https://blocxscan.com/address/{0}"
     }
 }
