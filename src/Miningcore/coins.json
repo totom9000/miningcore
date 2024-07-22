@@ -707,6 +707,13 @@
                 }
             ]
         },
+       },
+        "hasMasterNodes": true,
+        "explorerBlockLink": "https://blocxscan.com/blocks/$hash$",
+        "explorerTxLink": "https://blocxscan.com/transaction/{0}",
+        "explorerAccountLink": "https://blocxscan.com/address/{0}"
+    },
+        
     "digibyte-sha256": {
         "name": "Digibyte Sha256",
         "canonicalName": "Digibyte",
