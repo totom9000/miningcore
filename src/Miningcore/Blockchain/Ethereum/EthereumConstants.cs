@@ -47,6 +47,20 @@ public class CallistoConstants
     public const decimal TreasuryPercent = 50m;
 }
 
+// Etho Monetary Policy
+public class EthoConstants
+{
+    public const decimal BaseRewardInitial = 0.3m;
+//    public const decimal TreasuryPercent = 50m;
+}
+
+// Egaz Monetary Policy
+public class EgazConstants
+{
+    public const decimal BaseRewardInitial = 2.0m;
+//    public const decimal TreasuryPercent = 50m;
+}
+
 public class EthOneConstants
 {
     public const decimal BaseRewardInitial = 2.0m;
