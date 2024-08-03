@@ -188,6 +188,10 @@ Miningcore -c config.json
 ## Supported Currencies
 
 Refer to [this file](https://github.com/oliverw/miningcore/blob/master/src/Miningcore/coins.json) for a complete list.
+This evolution has the following currencies added and in testing or working order:
+blocx
+egaz
+etho
 
 ## Caveats
 
