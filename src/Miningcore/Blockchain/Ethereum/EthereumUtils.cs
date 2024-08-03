@@ -28,5 +28,11 @@ public static class EthereumUtils
 
         if(chainType == GethChainType.Callisto)
             chainType = GethChainType.Callisto;
+        
+        if(chainType == GethChainType.Etho)
+            chainType = GethChainType.Etho;
+
+        if(chainType == GethChainType.Egaz)
+            chainType = GethChainType.Egaz;
     }
 }
