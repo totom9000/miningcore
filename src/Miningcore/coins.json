@@ -4383,5 +4383,39 @@
         "explorerBlockLink": "https://blocxscan.com/blocks/$hash$",
         "explorerTxLink": "https://blocxscan.com/transaction/{0}",
         "explorerAccountLink": "https://blocxscan.com/address/{0}"
+    },
+    "etho": {
+        "name": "Etho",
+        "canonicalName": "Etho",
+        "symbol": "ETHO",
+        "family": "ethereum",
+        "website": "https://ethoprotocol.com/",
+        "market": "https://coinpaprika.com/coin/etho-ethoprotocol/",
+        "twitter": "https://twitter.com/ethdotorg",
+        "telegram": "",
+        "discord": "https://discord.gg/ek4Bb4GCA6",
+        "explorerBlockLinks": {
+            "block": "https://explorer.ethoprotocol.com/blocks/$height$",
+            "uncle": "https://explorer.ethoprotocol.com/uncles/$height$"
+        },
+        "explorerTxLink": "https://explorer.ethoprotocol.com/txs/{0}",
+        "explorerAccountLink": "https://explorer.ethoprotocol.com/address/{0}"
+    },
+    "egaz": {
+        "name": "Egaz",
+        "canonicalName": "Egaz",
+        "symbol": "EGAZ",
+        "family": "ethereum",
+        "website": "https://etica/",
+        "market": "https://coinpaprika.com/coin/egaz-egaz/",
+        "twitter": "https://twitter.com/ethdotorg",
+        "telegram": "",
+        "discord": "https://discord.gg/Hj4HA8SsMq",
+        "explorerBlockLinks": {
+            "block": "https://eticascan.org/blocks/$height$",
+            "uncle": "https://eticascan.org/blocks/$height$"
+        },
+        "explorerTxLink": "https://eticascan.org/txs/{0}",
+        "explorerAccountLink": "https://eticascan.org/address/{0}"
     }
 }
