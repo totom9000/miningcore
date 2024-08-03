@@ -4412,8 +4412,8 @@
         "telegram": "",
         "discord": "https://discord.gg/Hj4HA8SsMq",
         "explorerBlockLinks": {
-            "block": "https://eticascan.org/blocks/$height$",
-            "uncle": "https://eticascan.org/blocks/$height$"
+            "block": "https://eticascan.org/block/$height$",
+            "uncle": "https://eticascan.org/block/$height$"
         },
         "explorerTxLink": "https://eticascan.org/txs/{0}",
         "explorerAccountLink": "https://eticascan.org/address/{0}"
