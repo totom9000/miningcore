@@ -93,8 +93,8 @@ public enum GethChainType
     MainPow = 10001,
     EtherOne = 4949,
     Pink = 10100,
-    Etho = 1313114,
-    Egaz = 61803,
+    Etho,
+    Egaz,
     
     Unknown = -1,
 }
